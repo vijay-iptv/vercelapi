@@ -4,7 +4,9 @@ export default async function handler(req, res) {
   try {
     const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
     const subscriberId = "1464687407";
-    const aesKey = "aesEncryptionKey"; // same key used in PHP
+
+    // 🔐 Use same secret key used in PHP
+    const secretKey = "aesEncryptionKey";
 
     const content_api =
       "https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/647";
@@ -26,19 +28,19 @@ export default async function handler(req, res) {
 
     const responseData = await response.json();
 
-    // 2️⃣ Validate dashPlayreadyPlayUrl
-    if (!responseData?.data?.dashPlayreadyPlayUrl) {
-      return res.status(404).json({ error: "dashPlayreadyPlayUrl not found." });
+    if (!responseData?.data?.dashWidewinePlayUrl) {
+      return res.status(404).json({ error: "Encrypted URL not found." });
     }
 
-    // 3️⃣ Decrypt dashWidewinePlayUrl
+    // 2️⃣ Decrypt URL
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
-    let decryptedUrl = decryptUrl(encryptedUrl, aesKey);
 
+    let decryptedUrl = decryptUrl(encryptedUrl, secretKey);
+
+    // Replace if needed
     decryptedUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
 
-
-    // 5️⃣ Fetch headers WITHOUT following redirect
+    // 3️⃣ Fetch redirect manually
     const headResponse = await fetch(decryptedUrl, {
       method: "GET",
       redirect: "manual",
@@ -49,7 +51,11 @@ export default async function handler(req, res) {
 
     const location = headResponse.headers.get("location");
 
-    // 6️⃣ Clean MPD URL
+    if (!location) {
+      return res.status(400).json({ error: "MPD redirect not found" });
+    }
+
+    // 4️⃣ Clean MPD URL
     const mpdurl = location.includes("&")
       ? location.substring(0, location.indexOf("&"))
       : location;
@@ -57,19 +63,28 @@ export default async function handler(req, res) {
     return res.status(200).json({ mpdurl });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 }
 
-//
-// 🔐 AES Decryption Function (Match your PHP logic)
-//
-function decryptUrl(encryptedText, key) {
+/**
+ * 🔐 AES-256-CBC Decryption (Matches Common PHP Setup)
+ */
+function decryptUrl(encryptedText, secretKey) {
+  // Create 32-byte key using SHA256
+  const key = crypto.createHash("sha256").update(secretKey).digest();
+
+  // Use first 16 bytes as IV
+  const iv = key.slice(0, 16);
+
   const decipher = crypto.createDecipheriv(
-    "aes-128-cbc", // change if different in PHP
-    Buffer.from(key, "utf8"),
-    Buffer.alloc(16, 0) // adjust IV if needed
+    "aes-256-cbc",
+    key,
+    iv
   );
+
+  decipher.setAutoPadding(true);
 
   let decrypted = decipher.update(encryptedText, "base64", "utf8");
   decrypted += decipher.final("utf8");
