@@ -33,35 +33,10 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Encrypted URL not found." });
     }
 
-    // 2️⃣ Decrypt URL
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
-     console.log(encryptedUrl)
+
     let decryptedUrl = decryptUrl(encryptedUrl, secretKey);
-    console.log(decryptedUrl)
-
-    // Replace if needed
-    decryptedUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
-       /*  console.log(decryptedUrl)
-    // 3️⃣ Fetch redirect manually
-    const headResponse = await fetch(decryptedUrl, {
-      method: "GET",
-      redirect: "manual",
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-    });
-    console.log(headResponse)
-
-    const location = headResponse.headers.get("location");
-
-    if (!location) {
-      return res.status(400).json({ error: "MPD redirect not found" });
-    } */
-
-    // 4️⃣ Clean MPD URL
-    const mpdurl = decryptedUrl;
-
-    return res.status(200).json({ mpdurl });
+    return res.status(200).json(decryptedUrl);
 
   } catch (error) {
     console.error(error);
