@@ -72,20 +72,15 @@ export default async function handler(req, res) {
  * 🔐 AES-256-CBC Decryption (Matches Common PHP Setup)
  */
 function decryptUrl(encryptedText, secretKey) {
-  // Convert base64 → buffer
   const encryptedBuffer = Buffer.from(encryptedText, "base64");
 
-  // Extract IV (first 16 bytes)
   const iv = encryptedBuffer.slice(0, 16);
-
-  // Extract actual encrypted data
   const encrypted = encryptedBuffer.slice(16);
 
-  // Create 32 byte key
-  const key = crypto.createHash("sha256").update(secretKey).digest();
+  const key = crypto.createHash("md5").update(secretKey).digest();
 
   const decipher = crypto.createDecipheriv(
-    "aes-256-cbc",
+    "aes-128-cbc",
     key,
     iv
   );
@@ -95,4 +90,5 @@ function decryptUrl(encryptedText, secretKey) {
 
   return decrypted.toString("utf8");
 }
+
 
