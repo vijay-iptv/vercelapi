@@ -2,14 +2,14 @@ import crypto from "crypto";
 
 export default async function handler(req, res) {
   try {
-    const userToken = process.env.USER_TOKEN || "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
-    const subscriberId = process.env.SUBSCRIBER_ID || "1464687407";
-    const aesKey = process.env.AES_KEY || "1234567890123456"; // 16 byte key required
+    const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
+    const subscriberId = "1464687407";
+    const aesKey = "YOUR_AES_KEY_HERE"; // same key used in PHP
 
     const content_api =
       "https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/647";
 
-    // 🔹 1. Fetch Content API
+    // 1️⃣ Call Content API
     const response = await fetch(content_api, {
       method: "GET",
       headers: {
@@ -21,32 +21,25 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: "External API failed",
-      });
+      return res.status(response.status).json({ error: "External API failed" });
     }
 
     const responseData = await response.json();
 
-    if (!responseData?.data?.dashWidewinePlayUrl) {
-      return res.status(404).json({
-        error: "dashWidewinePlayUrl not found",
-      });
+    // 2️⃣ Validate dashPlayreadyPlayUrl
+    if (!responseData?.data?.dashPlayreadyPlayUrl) {
+      return res.status(404).json({ error: "dashPlayreadyPlayUrl not found." });
     }
 
-    // 🔹 2. Decrypt URL
+    // 3️⃣ Decrypt dashWidewinePlayUrl
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
+    let decryptedUrl = decryptUrl(encryptedUrl, aesKey);
 
-    const decryptedUrl = decryptUrl(encryptedUrl, aesKey);
+    decryptedUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
 
-    if (!decryptedUrl) {
-      return res.status(500).json({ error: "Decryption failed" });
-    }
 
-    const finalUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
-
-    // 🔹 3. Get Redirect Location (manual)
-    const headResponse = await fetch(finalUrl, {
+    // 5️⃣ Fetch headers WITHOUT following redirect
+    const headResponse = await fetch(decryptedUrl, {
       method: "GET",
       redirect: "manual",
       headers: {
@@ -56,47 +49,30 @@ export default async function handler(req, res) {
 
     const location = headResponse.headers.get("location");
 
-    const mpdurl = location
-      ? location.split("&")[0]
-      : finalUrl;
+    // 6️⃣ Clean MPD URL
+    const mpdurl = location.includes("&")
+      ? location.substring(0, location.indexOf("&"))
+      : location;
 
     return res.status(200).json({ mpdurl });
 
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-    });
+    return res.status(500).json({ error: error.message });
   }
 }
 
-// 🔐 AES-128-CBC Decrypt Function
+//
+// 🔐 AES Decryption Function (Match your PHP logic)
+//
 function decryptUrl(encryptedText, key) {
-  try {
-    const keyBuffer = Buffer.from(key, "utf8");
+  const decipher = crypto.createDecipheriv(
+    "aes-128-cbc", // change if different in PHP
+    Buffer.from(key, "utf8"),
+    Buffer.alloc(16, 0) // adjust IV if needed
+  );
 
-    if (keyBuffer.length !== 16) {
-      throw new Error("AES-128 key must be 16 bytes");
-    }
+  let decrypted = decipher.update(encryptedText, "base64", "utf8");
+  decrypted += decipher.final("utf8");
 
-    const iv = Buffer.alloc(16, 0); // change if your PHP uses custom IV
-
-    const encryptedBuffer = Buffer.from(encryptedText, "base64");
-
-    const decipher = crypto.createDecipheriv(
-      "aes-128-cbc",
-      keyBuffer,
-      iv
-    );
-
-    decipher.setAutoPadding(true);
-
-    let decrypted = decipher.update(encryptedBuffer);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-    return decrypted.toString("utf8");
-
-  } catch (err) {
-    console.error("Decrypt error:", err.message);
-    return null;
-  }
+  return decrypted;
 }
