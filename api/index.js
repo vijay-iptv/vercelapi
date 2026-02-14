@@ -2,13 +2,9 @@ import crypto from "crypto";
 
 export default async function handler(req, res) {
   try {
-    const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
-    const subscriberId = "1464687407";
-<<<<<<< HEAD
-    const aesKey = "aesEncryptionKey"; // same key used in PHP
-=======
-    const aesKey = "1234567890123456"; // 16 byte key required
->>>>>>> c54d391 (Updated API code new changes)
+    const userToken = process.env.USER_TOKEN || "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
+    const subscriberId = process.env.SUBSCRIBER_ID || "1464687407";
+    const aesKey = process.env.AES_KEY || "1234567890123456"; // 16 byte key required
 
     const content_api =
       "https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/647";
