@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     let mpdurl = decryptUrl(encryptedUrl, secretKey);
 
-    const mpdResponse = await fetch(mpdurl, {
+    const mpdResponse = await fetch('https://bpaita6.akamaized.net/bpk-tv/irdeto_com_Channel_578/output/manifest.mpd?hdntl=exp=1771072241~acl=%2fbpk-tv%2firdeto_com_Channel_578%2foutput%2f*~id=1464687407~data=hdntl~hmac=f79def1851b36f93fadcba83f3dfeb58f72f072706fde3731e7f76f369a712d0', {
       headers: {
         "User-Agent": ua,
         Referer: "https://watch.tataplay.com/",
