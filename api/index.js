@@ -39,16 +39,17 @@ export default async function handler(req, res) {
 
     let responseLocation = await fetch(decryptedUrl, {
       method: "GET",
+      redirect: "manual", // 🔥 VERY IMPORTANT
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
       }
     });
 
     /* let location = responseLocation.headers.get("location");
     const mpdurl = location.includes("&")
       ? location.substring(0, location.indexOf("&"))
-      : location;
- */
+      : location;*/
     return res.status(200).json(responseLocation);
 
   } catch (error) {
