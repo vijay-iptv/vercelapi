@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import https from "https";
 
 export default async function handler(req, res) {
   try {
@@ -34,17 +33,11 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Encrypted URL not found." });
     }
 
+    // 2️⃣ Decrypt URL
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
 
     let decryptedUrl = decryptUrl(encryptedUrl, secretKey);
-
-    let responseLocation = await getHeadersNative(decryptedUrl);
-
-    /* let location = responseLocation.headers.get("location");
-    const mpdurl = location.includes("&")
-      ? location.substring(0, location.indexOf("&"))
-      : location;*/
-    return res.status(200).json(responseLocation);
+    return res.status(200).json(decryptedUrl);
 
   } catch (error) {
     console.error(error);
@@ -88,23 +81,6 @@ function decryptUrl(encryptedUrl, aesKey) {
     throw error;
   }
 }
-function getHeadersNative(url) {
-  return new Promise((resolve, reject) => {
-    const req = https.request(url, {
-      method: "GET",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
-      }
-    }, (res) => {
-      resolve({
-        status: res.statusCode,
-        headers: res.headers
-      });
-    });
 
-    req.on("error", reject);
-    req.end();
-  });
-}
 
 
