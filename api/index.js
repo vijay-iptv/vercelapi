@@ -72,23 +72,38 @@ export default async function handler(req, res) {
  * 🔐 AES-256-CBC Decryption (Matches Common PHP Setup)
  */
 function decryptUrl(encryptedText, secretKey) {
-  const encryptedBuffer = Buffer.from(encryptedText, "base64");
+  try {
+    // Ensure base64 clean
+    const encryptedBuffer = Buffer.from(encryptedText.trim(), "base64");
 
-  const iv = encryptedBuffer.slice(0, 16);
-  const encrypted = encryptedBuffer.slice(16);
+    // If IV is prefixed (most common case)
+    const iv = encryptedBuffer.subarray(0, 16);
+    const encrypted = encryptedBuffer.subarray(16);
 
-  const key = crypto.createHash("md5").update(secretKey).digest();
+    // Create proper 32-byte key
+    const key = crypto
+      .createHash("sha256")
+      .update(secretKey)
+      .digest();
 
-  const decipher = crypto.createDecipheriv(
-    "aes-128-cbc",
-    key,
-    iv
-  );
+    const decipher = crypto.createDecipheriv(
+      "aes-256-cbc",
+      key,
+      iv
+    );
 
-  let decrypted = decipher.update(encrypted);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
+    decipher.setAutoPadding(true);
 
-  return decrypted.toString("utf8");
+    let decrypted = decipher.update(encrypted);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+    return decrypted.toString("utf8");
+
+  } catch (err) {
+    console.error("Decrypt error:", err);
+    throw new Error("Decryption failed");
+  }
 }
+
 
 
