@@ -8,6 +8,8 @@ export default async function handler(req, res) {
 
     // 🔐 Use same secret key used in PHP
     const secretKey = "aesEncryptionKey";
+    const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36";
+
 
     const content_api = `https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/${id}`;
 
@@ -28,7 +30,6 @@ export default async function handler(req, res) {
 
     const responseData = await response.json();
 
-    console.log(responseData)
     if (!responseData?.data?.dashWidewinePlayUrl) {
       return res.status(404).json({ error: "Encrypted URL not found." });
     }
@@ -36,8 +37,23 @@ export default async function handler(req, res) {
     // 2️⃣ Decrypt URL
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
 
-    let decryptedUrl = decryptUrl(encryptedUrl, secretKey);
-    return res.status(200).json(decryptedUrl);
+    let mpdurl = decryptUrl(encryptedUrl, secretKey);
+
+    const mpdResponse = await fetch(mpdurl, {
+      headers: {
+        "User-Agent": ua,
+        Referer: "https://watch.tataplay.com/",
+        Origin: "https://watch.tataplay.com",
+      },
+    });
+
+    if (!mpdResponse.ok) {
+      return res.status(500).send("Failed to fetch MPD content.");
+    }
+
+    let mpdContent = await mpdResponse.text();
+
+    return res.status(200).json(mpdContent);
 
   } catch (error) {
     console.error(error);
