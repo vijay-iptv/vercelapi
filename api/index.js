@@ -74,37 +74,37 @@ export default async function handler(req, res) {
 /**
  * 🔐 AES-256-CBC Decryption (Matches Common PHP Setup)
  */
-function decryptUrl(encryptedText, secretKey) {
+function decryptUrl(encryptedUrl, aesKey) {
   try {
-    // Ensure base64 clean
-    const encryptedBuffer = Buffer.from(encryptedText.trim(), "base64");
+    // Remove everything after #
+    const cleanEncrypted = encryptedUrl.replace(/#.*$/, "");
 
-    // If IV is prefixed (most common case)
-    const iv = encryptedBuffer.subarray(0, 16);
-    const encrypted = encryptedBuffer.subarray(16);
+    // Base64 decode
+    const decoded = Buffer.from(cleanEncrypted, "base64");
 
-    // Create proper 32-byte key
-    const key = crypto
-      .createHash("sha256")
-      .update(secretKey)
-      .digest();
+    // AES-128-ECB requires 16 byte key
+    const key = Buffer.from(aesKey, "utf8");
+
+    if (key.length !== 16) {
+      throw new Error("AES-128-ECB requires 16 byte key");
+    }
 
     const decipher = crypto.createDecipheriv(
-      "aes-256-cbc",
+      "aes-128-ecb",
       key,
-      iv
+      null // ECB does NOT use IV
     );
 
     decipher.setAutoPadding(true);
 
-    let decrypted = decipher.update(encrypted);
+    let decrypted = decipher.update(decoded);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
 
     return decrypted.toString("utf8");
 
-  } catch (err) {
-    console.error("Decrypt error:", err);
-    throw new Error("Decryption failed");
+  } catch (error) {
+    console.error("Decryption failed:", error);
+    throw error;
   }
 }
 
