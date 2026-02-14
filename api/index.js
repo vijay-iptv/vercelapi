@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 export default async function handler(req, res) {
-  try {
+
     const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
     const subscriberId = "1464687407";
 
@@ -34,8 +34,10 @@ export default async function handler(req, res) {
 
     // 2️⃣ Decrypt URL
     const encryptedUrl = responseData.data.dashWidewinePlayUrl;
-
+       console.log(encryptedUrl)
     let decryptedUrl = decryptUrl(encryptedUrl, secretKey);
+
+    console.log(decryptedUrl)
 
     // Replace if needed
     decryptedUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
@@ -62,10 +64,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ mpdurl });
 
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
 }
 
 /**
