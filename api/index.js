@@ -45,12 +45,12 @@ export default async function handler(req, res) {
       }
     });
 
-    let location = responseLocation.headers.get("location");
+    /* let location = responseLocation.headers.get("location");
     const mpdurl = location.includes("&")
       ? location.substring(0, location.indexOf("&"))
       : location;
-
-    return res.status(200).json(mpdurl);
+ */
+    return res.status(200).json(responseLocation);
 
   } catch (error) {
     console.error(error);
