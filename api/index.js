@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   try {
     const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
     const subscriberId = "1464687407";
-    const aesKey = "YOUR_AES_KEY_HERE"; // same key used in PHP
+    const aesKey = "aesEncryptionKey"; // same key used in PHP
 
     const content_api =
       "https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/647";
