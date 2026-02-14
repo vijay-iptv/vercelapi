@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     // Replace if needed
     decryptedUrl = decryptedUrl.replace("bpaicatchupta", "bpaita");
-        console.log(decryptedUrl)
+       /*  console.log(decryptedUrl)
     // 3️⃣ Fetch redirect manually
     const headResponse = await fetch(decryptedUrl, {
       method: "GET",
@@ -56,12 +56,10 @@ export default async function handler(req, res) {
 
     if (!location) {
       return res.status(400).json({ error: "MPD redirect not found" });
-    }
+    } */
 
     // 4️⃣ Clean MPD URL
-    const mpdurl = location.includes("&")
-      ? location.substring(0, location.indexOf("&"))
-      : location;
+    const mpdurl = decryptedUrl;
 
     return res.status(200).json({ mpdurl });
 
