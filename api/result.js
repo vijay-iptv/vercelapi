@@ -2,14 +2,14 @@ import crypto from "crypto";
 
 export default async function handler(req, res) {
   try {
+    const id = req.query.id;
     const userToken = "Tsn40dpLWSdLrEp5Tu6vAotKzgL717UZ";
     const subscriberId = "1464687407";
 
     // 🔐 Use same secret key used in PHP
     const secretKey = "aesEncryptionKey";
 
-    const content_api =
-      "https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/647";
+    const content_api = `https://tb.tapi.videoready.tv/content-detail/api/partner/cdn/player/details/chotiluli/${id}`;
 
     // 1️⃣ Call Content API
     const response = await fetch(content_api, {
